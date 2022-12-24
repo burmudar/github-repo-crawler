@@ -3,16 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"strings"
 
 	"github.com/google/go-github/github"
+	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/oauth2"
-
-	"github.com/sourcegraph/sourcegraph/lib/errors"
 )
 
 func newClientv4(apiUrl, token string) (*githubv4.Client, error) {
@@ -182,7 +182,7 @@ type Config struct {
 func printGen(prefix string) func(string, ...any) {
 	return func(format string, parts ...any) {
 		msg := fmt.Sprintf("[%s] %s", prefix, format)
-		fmt.Printf(msg, parts...)
+		log.Printf(msg, parts...)
 	}
 }
 
@@ -293,16 +293,19 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.IntFlag{
 						Name:     "api-version",
+						Usage:    "which GitHub api version to use 3 (REST API) or 4 (GraphQL)",
 						Required: false,
 						Value:    3,
 					},
 					&cli.StringFlag{
 						Name:     "token",
+						Usage:    "GitHub PAT with scopes ['read:org', 'repo:read']",
 						Required: true,
 						EnvVars:  []string{"GITHUB_TOKEN"},
 					},
 					&cli.StringFlag{
 						Name:     "url",
+						Usage:    "GitHub Enterprise url (GitHub.com not supported)",
 						Required: true,
 						EnvVars:  []string{"GITHUB_URL"},
 					},
@@ -329,7 +332,7 @@ func main() {
 							v4(Config{URL: apiUrl, Token: token, Org: org})
 						}
 					default:
-						return fmt.Errorf("unkown api version")
+						return fmt.Errorf("unknown api version")
 					}
 					return nil
 				},
